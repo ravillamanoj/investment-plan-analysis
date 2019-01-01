@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en" data-ng-app = "SRKM">
+<head xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+    <meta charset="UTF-8">
+    <title>Investment Plan Analytics</title>
+    <link href='http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+    <link href='//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/css/datepicker.min.css' rel='stylesheet' type='text/css'>
+    <link href='//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/1.8/css/bootstrap-switch.css' rel='stylesheet' type='text/css'>
+    <link href='http://davidstutz.github.io/bootstrap-multiselect/css/bootstrap-multiselect.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">
+    <script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js' type='text/javascript'></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.0/js/bootstrap.min.js' type='text/javascript'></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/js/bootstrap-datepicker.min.js' type='text/javascript'></script>
+    <script src='//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/1.8/js/bootstrap-switch.min.js' type='text/javascript'></script>
+    <script src='http://davidstutz.github.io/bootstrap-multiselect/js/bootstrap-multiselect.js' type='text/javascript'></script>
+
+    <script type="text/javascript" src="loader.js"></script>
+    <script type="text/javascript">
+        function Matrix() {
+            // to get form input data
+            var x1 = document.getElementById("Home_annualSalary").value;
+            var currentIncome = parseInt(x1);
+            var balance401 = Number(document.getElementById("Home_currentBalance").value);
+            var interestRate = Number(document.getElementById("Home_interestRate").value);
+            var personalContribution = Number(document.getElementById("Home_personalContribution").value);
+            var match_emp = Number(document.getElementById("Home_match").value);
+            var growthRate = Number(document.getElementById("Home_growth").value);
+            var currentAge = Number(document.getElementById("Home_currentAge").value);
+            var retirementAge = Number(document.getElementById("Home_retirementAge").value);
+            var option = document.getElementById("Risk");
+            var risk = option.options[option.selectedIndex].value;
+            var ageDiff = retirementAge - currentAge;
+            var Bonds, MFS, Stocks;
+            // to check whether any required field is empty
+            if (currentAge == 0 || retirementAge == 0 || currentIncome == 0 || growthRate == 0 || balance401 == 0 || interestRate == 0 || personalContribution == 0 || match_emp == 0) {
+                alert("All '*' fields are mandatory");
+            }
+            // if all the required fields are filled
+            else {
+                window.location = "#table_header_tag";
+                switch (risk) {
+                    case "Low" :
+                        if (ageDiff <= 10) {
+                            Bonds = 75;
+                            MFS = 15;
+                            Stocks = 10;
+                        }
+                        else if (ageDiff >= 11 && ageDiff <= 20) {
+                            Bonds = 55;
+                            MFS = 25;
+                            Stocks = 20;
+                        }
+                        else {
+                            Bonds = 35;
+                            MFS = 35;
+                            Stocks = 30;
+                        }
+                        break;
+                    case "Medium" :
+                        if (ageDiff <= 10) {
+                            Bonds = 60;
+                            MFS = 20;
+                            Stocks = 20;
+                        }
+                        else if (ageDiff >= 11 && ageDiff <= 20) {
+                            Bonds = 40;
+                            MFS = 30;
+                            Stocks = 30;
+                        }
+                        else {
+                            Bonds = 20;
+                            MFS = 40;
+                            Stocks = 40;
+                        }
+                        break;
+                    case "High" :
+                        if (ageDiff <= 10) {
+                            Bonds = 40;
+                            MFS = 25;
+                            Stocks = 35;
+                        }
+                        else if (ageDiff >= 11 && ageDiff <= 20) {
+                            Bonds = 20;
+                            MFS = 35;
+                            Stocks = 45;
+                        }
+                        else {
+                            Bonds = 5;
+                            MFS = 40;
+                            Stocks = 55;
+                        }
+                        break;
+                }
+
+                google.charts.load('current', {'packages': ['corechart']});
+                google.charts.setOnLoadCallback(function () {
+                    drawChart(Bonds, MFS, Stocks);
+                });
+
+                //calling another function
+                myFunction(currentAge, currentIncome, interestRate, personalContribution, match_emp, ageDiff, growthRate, balance401);
+                //To set Text above the generated table
+                var e = document.getElementById("id_title");
+                var idTitle = e.options[e.selectedIndex].value;
+                document.getElementById("table_header_tag").innerHTML = "Hello "+idTitle+". " + document.getElementById("id_last_name").value+"," +document.getElementById("id_first_name").value + ", the following table provides you the 401(k) balance by the end of each year.. ";
+                document.getElementById("graph_header_tag").innerHTML = "Based on your Inputs, we propose you the following Asset Allocation Plan";
+            }
+// visualization function
+            function drawChart(Bonds, MFS, Stocks) {
+
+                var data = google.visualization.arrayToDataTable([
+                    ['Type', 'Value'],
+                    ['Bonds', Bonds],
+                    ['Mutual Funds', MFS],
+                    ['Stocks', Stocks]
+                ]);
+
+                var options = {
+                    title: 'Investment Plan Analytics',
+                    xLabels: 100
+                };
+
+                var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+                chart.draw(data, options);
+            }
+//All the calculation part is done within this function
+            function myFunction(currentAge, currentIncome, interestRate, personalContribution, match_emp, ageDiff, growthRate, balance401) {
+                var sal = currentIncome;
+
+                var emp_contribution;
+                var anl_contribution;
+                var interest = 0;
+                var totalBalance = balance401;
+                //to create table at runtime and inserting column names
+                var table = document.getElementById("myTable");
+                var header = table.createTHead();
+                var headRow = header.insertRow(0);
+                var headerCell1 = headRow.insertCell(0);
+                var headerCell2 = headRow.insertCell(1);
+                var headerCell3 = headRow.insertCell(2);
+                var headerCell4 = headRow.insertCell(3);
+                var headerCell5 = headRow.insertCell(4);
+                var headerCell6 = headRow.insertCell(5);
+                var headerCell7 = headRow.insertCell(6);
+                var headerCell8 = headRow.insertCell(7);
+                headerCell1.innerHTML = "YEAR";
+                headerCell2.innerHTML = "AGE";
+                headerCell3.innerHTML = "RATE";
+                headerCell4.innerHTML = "SALARY";
+                headerCell5.innerHTML = "ANNUAL_CONTRIBUTION";
+                headerCell6.innerHTML = "EMPLOYEE_CONTRIBUTION";
+                headerCell7.innerHTML = "INTEREST";
+                headerCell8.innerHTML = "BALANCE";
+
+//this loop will generates all the table rows at runtime
+                for (var i = 0; i < ageDiff; i++) {
+                    console.log(i)
+                    sal = (sal * (growthRate / 100)) + sal;
+                    sal = round(sal, 2);
+                    anl_contribution = sal * (personalContribution / 100);
+                    anl_contribution = round(anl_contribution, 2);
+                    emp_contribution = (match_emp / 100) * anl_contribution;
+                    emp_contribution = round(emp_contribution, 2);
+                    interest = ((balance401 + interest) * (1 + (interestRate / 100))) - balance401;
+                    interest = round(interest, 2);
+                    totalBalance = anl_contribution + emp_contribution + interest + totalBalance;
+                    totalBalance = round(totalBalance, 2);
+                    var row = table.insertRow(i + 1);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    var cell4 = row.insertCell(3);
+                    var cell5 = row.insertCell(4);
+                    var cell6 = row.insertCell(5);
+                    var cell7 = row.insertCell(6);
+                    var cell8 = row.insertCell(7);
+                    cell1.innerHTML = i + 1;
+                    cell2.innerHTML = currentAge + i + 1;
+                    cell3.innerHTML = interestRate;
+                    cell4.innerHTML = sal;
+                    cell5.innerHTML = anl_contribution;
+                    cell6.innerHTML = emp_contribution;
+                    cell7.innerHTML = interest;
+                    cell8.innerHTML = totalBalance;
+
+                }
+            }
+// To round the floating point values to two decimal places
+            function round(value, decimals) {
+                return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
+            }
+
+        }
+    </script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        th, td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even){background-color: #f2f2f2;text-align: center;}
+    </style>
+
+</head>
+
+
+</br>
+<div class='container' id='myForm'>
+    <div class='panel panel-primary dialog-panel'>
+        <div class='panel-heading' align="center">
+            <h2>Investment Plan Analytics</h2>
+        </div>
+        </br>
+
+        <div class='panel-body'>
+
+            <div class='form-horizontal' role='form' >
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='id_title'>Name</label>
+                    <div class='col-md-8'>
+                        <div class='col-md-2'>
+                            <div class='form-group internal'>
+                                <select class='form-control' id='id_title'>
+                                    <option>Mr</option>
+                                    <option>Ms</option>
+                                    <option>Mrs</option>
+                                    <option>Miss</option>
+                                    <option>Dr</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class='col-md-3 indent-small'>
+                            <div class='form-group internal'>
+                                <input class='form-control' id='id_first_name' placeholder='First Name' type='text'>
+                            </div>
+                        </div>
+                        <div class='col-md-3 indent-small'>
+                            <div class='form-group internal'>
+                                <input class='form-control' id='id_last_name' placeholder='Last Name' type='text'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='Home_currentAge'>Current Age*</label>
+                    <div class='col-md-8'>
+                        <div class='col-md-2'>
+                            <div class='form-group internal input-group'>
+                                <input class='form-control' id='Home_currentAge'>
+                            </div>
+                        </div>
+                        <label class='control-label col-md-4' for='Home_retirementAge'>Retirement Age*</label>
+                        <div class='col-md-2'>
+                            <div class='form-group internal input-group'>
+                                <input class='form-control' id='Home_retirementAge'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='Home_annualSalary'>Current Salary*</label>
+                    <div class='col-md-8'>
+                        <div class='col-md-2'>
+                            <div class='form-group internal input-group'>
+                                <input class='form-control' id='Home_annualSalary' placeholder='0.00'>
+                            </div>
+                        </div>
+                        <label class='control-label col-md-4' for='Home_growth' placeholder='%'>Estimated Annual growth*</label>
+                        <div class='col-md-2'>
+                            <div class='form-group internal input-group'>
+                                <input class='form-control' id='Home_growth' placeholder='%'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='Home_currentBalance'>Current 401(k) Balance*</label>
+                    <div class='col-md-6'>
+                        <div class='form-group'>
+                            <div class='col-md-11'>
+                                <input class='form-control' id='Home_currentBalance' placeholder='0.00' type='text'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='Home_interestRate' >Interest Rate*</label>
+                    <div class='col-md-6'>
+                        <div class='form-group'>
+                            <div class='col-md-11'>
+                                <input class='form-control' id='Home_interestRate' placeholder='%' type='text'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='Home_personalContribution' >Personal Contribution*</label>
+                    <div class='col-md-8'>
+                        <div class='col-md-2'>
+                            <div class='form-group internal input-group'>
+                                <input class='form-control' id='Home_personalContribution' placeholder='%'>
+                            </div>
+                        </div>
+                        <label class='control-label col-md-4' for='Home_match'>% Match of Employer*</label>
+                        <div class='col-md-2'>
+                            <div class='form-group internal input-group'>
+                                <input class='form-control' id='Home_match' placeholder='%'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class='form-group'>
+                    <label class='control-label col-md-2 col-md-offset-2' for='Risk'>Risk level*</label>
+                    <div class='col-md-8'>
+                        <div class='col-md-4'>
+                            <div class='form-group internal'>
+                                <select class='form-control' id='Risk'>
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div class='form-group'>
+                    <div class='col-md-offset-4 col-md-1'>
+                        <a><button class='btn-lg btn-primary' type='submit' onclick="Matrix()">Submit</button></a>
+                    </div>
+                    <div class='col-md-3'>
+                        <button class='btn-lg btn-primary' style='float:right' type='button' data-dismiss="modal" id="reset" onclick="window.location='index.html'">Reset</button>
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+</div>
+
+</br></br></br>
+<h4 id="table_header_tag" align="center"></h4>
+</br></br>
+<!--table-->
+<table id="myTable";style="width:100%";class="table table-striped"; align="center">
+
+</table>
+
+</br></br></br></br>
+<h4 id="graph_header_tag" align="center"></h4>
+
+<!--pie chart-->
+<div id="piechart" style="width: 1350px; height: 750px;" align="center"></div>
+
+</body>
+</html>
